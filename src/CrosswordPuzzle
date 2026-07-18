@@ -1,0 +1,181 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'crosswordPuzzle' function below.
+     *
+     * The function is expected to return a STRING_ARRAY.
+     * The function accepts following parameters:
+     *  1. STRING_ARRAY crossword
+     *  2. STRING words
+     */
+
+    public static List<String> crosswordPuzzle(List<String> crossword, String words) {
+        // Convert the crossword to a 2D char array for easy manipulation
+        char[][] grid = new char[10][10];
+        for (int i = 0; i < 10; i++) {
+            grid[i] = crossword.get(i).toCharArray();
+        }
+
+        // Split the semicolon-delimited words into a list
+        String[] wordList = words.split(";");
+
+        // Start recursive backtracking to solve the puzzle
+        solve(grid, wordList, 0);
+
+        // Reconstruct the result list from the modified grid
+        List<String> result = new ArrayList<String>();
+        for (int i = 0; i < 10; i++) {
+            result.add(new String(grid[i]));
+        }
+        return result;
+    }
+
+    private static boolean solve(char[][] grid, String[] words, int wordIndex) {
+        // Base case: If all words are successfully placed, puzzle solved
+        if (wordIndex == words.length) {
+            return true;
+        }
+
+        String currentWord = words[wordIndex];
+
+        // Search the 10x10 grid for potential candidate slots
+        for (int r = 0; r < 10; r++) {
+            for (int c = 0; c < 10; c++) {
+                
+                // 1. Try placing the current word horizontally
+                if (canPlaceHorizontal(grid, currentWord, r, c)) {
+                    boolean[] placedState = placeHorizontal(grid, currentWord, r, c);
+                    if (solve(grid, words, wordIndex + 1)) {
+                        return true;
+                    }
+                    // Backtrack if down-stream word paths fail
+                    removeHorizontal(grid, currentWord, r, c, placedState);
+                }
+
+                // 2. Try placing the current word vertically
+                if (canPlaceVertical(grid, currentWord, r, c)) {
+                    boolean[] placedState = placeVertical(grid, currentWord, r, c);
+                    if (solve(grid, words, wordIndex + 1)) {
+                        return true;
+                    }
+                    // Backtrack if down-stream word paths fail
+                    removeVertical(grid, currentWord, r, c, placedState);
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean canPlaceHorizontal(char[][] grid, String word, int r, int c) {
+        // Ensure the word doesn't run off the right edge of the grid
+        if (c + word.length() > 10) return false;
+        
+        // Ensure the full boundary of the slot fits the slot dimensions exactly
+        if (c > 0 && grid[r][c - 1] != '+') return false;
+        if (c + word.length() < 10 && grid[r][c + word.length()] != '+') return false;
+
+        for (int i = 0; i < word.length(); i++) {
+            char gridChar = grid[r][c + i];
+            // Cell must be blank '-' or match the overlapping letter exactly
+            if (gridChar != '-' && gridChar != word.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean[] placeHorizontal(char[][] grid, String word, int r, int c) {
+        boolean[] placed = new boolean[word.length()];
+        for (int i = 0; i < word.length(); i++) {
+            if (grid[r][c + i] == '-') {
+                grid[r][c + i] = word.charAt(i);
+                placed[i] = true; // Mark as newly written character for recovery pathing
+            }
+        }
+        return placed;
+    }
+
+    private static void removeHorizontal(char[][] grid, String word, int r, int c, boolean[] placed) {
+        for (int i = 0; i < word.length(); i++) {
+            if (placed[i]) {
+                grid[r][c + i] = '-';
+            }
+        }
+    }
+
+    private static boolean canPlaceVertical(char[][] grid, String word, int r, int c) {
+        // Ensure the word doesn't run off the bottom edge of the grid
+        if (r + word.length() > 10) return false;
+
+        // Ensure the full boundary of the slot fits the slot dimensions exactly
+        if (r > 0 && grid[r - 1][c] != '+') return false;
+        if (r + word.length() < 10 && grid[r + word.length()][c] != '+') return false;
+
+        for (int i = 0; i < word.length(); i++) {
+            char gridChar = grid[r + i][c];
+            // Cell must be blank '-' or match the overlapping letter exactly
+            if (gridChar != '-' && gridChar != word.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean[] placeVertical(char[][] grid, String word, int r, int c) {
+        boolean[] placed = new boolean[word.length()];
+        for (int i = 0; i < word.length(); i++) {
+            if (grid[r + i][c] == '-') {
+                grid[r + i][c] = word.charAt(i);
+                placed[i] = true; // Mark as newly written character for recovery pathing
+            }
+        }
+        return placed;
+    }
+
+    private static void removeVertical(char[][] grid, String word, int r, int c, boolean[] placed) {
+        for (int i = 0; i < word.length(); i++) {
+            if (placed[i]) {
+                grid[r + i][c] = '-';
+            }
+        }
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        List<String> crossword = new ArrayList<String>();
+
+        for (int i = 0; i < 10; i++) {
+            String crosswordItem = bufferedReader.readLine();
+            crossword.add(crosswordItem);
+        }
+
+        String words = bufferedReader.readLine();
+
+        List<String> result = Result.crosswordPuzzle(crossword, words);
+
+        for (int i = 0; i < result.size(); i++) {
+            bufferedWriter.write(result.get(i));
+
+            if (i != result.size() - 1) {
+                bufferedWriter.write("\n");
+            }
+        }
+
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
