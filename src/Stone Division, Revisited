@@ -1,0 +1,89 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'stoneDivision' function below.
+     *
+     * The function is expected to return a LONG_INTEGER.
+     * The function accepts following parameters:
+     *  1. LONG_INTEGER n
+     *  2. LONG_INTEGER_ARRAY s
+     */
+
+    public static long stoneDivision(long n, List<Long> s) {
+        // Use a map to memoize the maximum moves for a given pile size to avoid TLE
+        Map<Long, Long> memo = new HashMap<Long, Long>();
+        return calculateMaxMoves(n, s, memo);
+    }
+    
+    private static long calculateMaxMoves(long currentPile, List<Long> s, Map<Long, Long> memo) {
+        // If we have already calculated the optimal moves for this pile size, return it
+        if (memo.containsKey(currentPile)) {
+            return memo.get(currentPile);
+        }
+
+        long maxMoves = 0;
+
+        // Iterate through all possible divisor values in set S[cite: 20]
+        for (long x : s) {
+            // Check if x is a valid divisor (must be a factor of currentPile and not equal to it)[cite: 20]
+            if (currentPile % x == 0 && currentPile > x) {
+                // We split the current pile into (currentPile / x) equal smaller piles[cite: 20]
+                long numPiles = currentPile / x;
+                
+                // The total moves for this path is 1 (the current split) plus the optimal moves 
+                // for all the newly created smaller piles
+                long moves = 1 + numPiles * calculateMaxMoves(x, s, memo);
+                
+                // Track the maximum moves possible out of all divisor choices[cite: 20]
+                maxMoves = Math.max(maxMoves, moves);
+            }
+        }
+
+        // Save the computed maximum moves for this pile size into the memoization map
+        memo.put(currentPile, maxMoves);
+        return maxMoves;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int q = Integer.parseInt(bufferedReader.readLine().trim());
+
+        for (int qItr = 0; qItr < q; qItr++) {
+            String[] firstMultipleInput = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+            long n = Long.parseLong(firstMultipleInput[0]);
+
+            int m = Integer.parseInt(firstMultipleInput[1]);
+
+            String[] sTemp = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+            List<Long> s = new ArrayList<Long>();
+
+            for (int i = 0; i < m; i++) {
+                long sItem = Long.parseLong(sTemp[i]);
+                s.add(sItem);
+            }
+
+            long result = Result.stoneDivision(n, s);
+
+            bufferedWriter.write(String.valueOf(result));
+            bufferedWriter.newLine();
+        }
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
