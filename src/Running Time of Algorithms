@@ -1,0 +1,64 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'runningTime' function below.
+     *
+     * The function is expected to return an INTEGER.
+     * The function accepts INTEGER_ARRAY arr as parameter.
+     */
+
+    public static int runningTime(List<Integer> arr) {
+        int shifts = 0; // Variable to keep track of the total number of shifts[cite: 21]
+        int n = arr.size();
+
+        for (int i = 1; i < n; i++) {
+            int value = arr.get(i);
+            int j = i - 1;
+
+            // Shift elements to the right as long as they are greater than value[cite: 21]
+            while (j >= 0 && arr.get(j) > value) {
+                arr.set(j + 1, arr.get(j));
+                shifts++; // A shift occurs when an element's position changes in the array[cite: 21]
+                j--;
+            }
+            arr.set(j + 1, value);
+        }
+
+        return shifts; // Return the total number of shifts taken to sort the array[cite: 21]
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int n = Integer.parseInt(bufferedReader.readLine().trim());
+
+        String[] arrTemp = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        List<Integer> arr = new ArrayList<Integer>();
+
+        for (int i = 0; i < n; i++) {
+            int arrItem = Integer.parseInt(arrTemp[i]);
+            arr.add(arrItem);
+        }
+
+        int result = Result.runningTime(arr);
+
+        bufferedWriter.write(String.valueOf(result));
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
