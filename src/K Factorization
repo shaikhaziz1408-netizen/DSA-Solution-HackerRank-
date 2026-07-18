@@ -1,0 +1,90 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'kFactorization' function below.
+     *
+     * The function is expected to return an INTEGER_ARRAY.
+     * The function accepts following parameters:
+     *  1. INTEGER n
+     *  2. INTEGER_ARRAY A
+     */
+
+    public static List<Integer> kFactorization(int n, List<Integer> A) {
+        // Sort the factors in descending order to greedily try larger choices first[cite: 20]
+        Collections.sort(A, Collections.reverseOrder());
+
+        List<Integer> states = new ArrayList<Integer>();
+        int current = n;
+        states.add(current);
+
+        // Work backwards from N to 1[cite: 20]
+        int i = 0;
+        while (current > 1 && i < A.size()) {
+            int factor = A.get(i);
+            if (current % factor == 0) {
+                current /= factor;
+                states.add(current);
+            } else {
+                i++; // Move to the next largest factor if current is not divisible
+            }
+        }
+
+        // If we reached 1, we successfully found the optimal path[cite: 20]
+        if (current == 1) {
+            // Reverse the collection to show steps starting from 1 up to N[cite: 20]
+            Collections.reverse(states);
+            return states;
+        }
+
+        // If no valid configuration exists to reach N, return -1[cite: 20]
+        List<Integer> noResult = new ArrayList<Integer>();
+        noResult.add(-1);
+        return noResult;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        String[] firstMultipleInput = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        int n = Integer.parseInt(firstMultipleInput[0]);
+
+        int k = Integer.parseInt(firstMultipleInput[1]);
+
+        String[] ATemp = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        List<Integer> A = new ArrayList<Integer>();
+
+        for (int i = 0; i < k; i++) {
+            int AItem = Integer.parseInt(ATemp[i]);
+            A.add(AItem);
+        }
+
+        List<Integer> result = Result.kFactorization(n, A);
+
+        for (int i = 0; i < result.size(); i++) {
+            bufferedWriter.write(String.valueOf(result.get(i)));
+
+            if (i != result.size() - 1) {
+                bufferedWriter.write(" ");
+            }
+        }
+
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
