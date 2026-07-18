@@ -1,0 +1,81 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'steadyGene' function below.
+     *
+     * The function is expected to return an INTEGER.
+     * The function accepts STRING gene as parameter.
+     */
+
+    public static int steadyGene(String gene) {
+        int n = gene.length();
+        int target = n / 4; // Each character must appear exactly n/4 times[cite: 13]
+
+        // Map characters to array indices for rapid lookups
+        int[] counts = new int[4];
+        for (int i = 0; i < n; i++) {
+            counts[charIndex(gene.charAt(i))]++;
+        }
+
+        // Check if the gene is already steady[cite: 13]
+        if (counts[0] <= target && counts[1] <= target && counts[2] <= target && counts[3] <= target) {
+            return 0; // No replacements needed[cite: 13]
+        }
+
+        int minLength = n;
+        int left = 0;
+
+        // Sliding window using two-pointer strategy
+        for (int right = 0; right < n; right++) {
+            // Include gene.charAt(right) inside the window, which decrements its outside frequency
+            counts[charIndex(gene.charAt(right))]--;
+
+            // Contract the window from the left as long as the outside characters are balanced
+            while (counts[0] <= target && counts[1] <= target && counts[2] <= target && counts[3] <= target && left <= right) {
+                minLength = Math.min(minLength, right - left + 1);
+                
+                // Exclude gene.charAt(left) from the window, increasing its outside frequency
+                counts[charIndex(gene.charAt(left))]++;
+                left++;
+            }
+        }
+
+        return minLength;
+    }
+
+    private static int charIndex(char ch) {
+        if (ch == 'A') return 0;
+        if (ch == 'C') return 1;
+        if (ch == 'G') return 2;
+        if (ch == 'T') return 3;
+        return -1;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int n = Integer.parseInt(bufferedReader.readLine().trim());
+
+        String gene = bufferedReader.readLine();
+
+        int result = Result.steadyGene(gene);
+
+        bufferedWriter.write(String.valueOf(result));
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
