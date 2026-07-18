@@ -1,0 +1,68 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'insertionSort1' function below.
+     *
+     * The function accepts following parameters:
+     *  1. INTEGER n
+     *  2. INTEGER_ARRAY arr
+     */
+
+    public static void insertionSort1(int n, List<Integer> arr) {
+        // Store the value of the rightmost cell (the unsorted value e)[cite: 18]
+        int e = arr.get(n - 1);
+        int i = n - 2;
+
+        // Shift elements to the right as long as they are greater than e[cite: 18]
+        while (i >= 0 && arr.get(i) > e) {
+            arr.set(i + 1, arr.get(i)); // Copy lower index value to current index[cite: 18]
+            printArray(arr);            // Print interim array state on a new line[cite: 18]
+            i--;
+        }
+
+        // Insert the stored value e into its correct sorted slot[cite: 18]
+        arr.set(i + 1, e);
+        printArray(arr); // Print the final array configuration[cite: 18]
+    }
+
+    // Helper method to print the array as a space-separated row of integers[cite: 18]
+    private static void printArray(List<Integer> arr) {
+        for (int j = 0; j < arr.size(); j++) {
+            System.out.print(arr.get(j));
+            if (j < arr.size() - 1) {
+                System.out.print(" ");
+            }
+        }
+        System.out.println();
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+
+        int n = Integer.parseInt(bufferedReader.readLine().trim());
+
+        String[] arrTemp = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        List<Integer> arr = new ArrayList<Integer>();
+
+        for (int i = 0; i < n; i++) {
+            int arrItem = Integer.parseInt(arrTemp[i]);
+            arr.add(arrItem);
+        }
+
+        Result.insertionSort1(n, arr);
+
+        bufferedReader.close();
+    }
+}
