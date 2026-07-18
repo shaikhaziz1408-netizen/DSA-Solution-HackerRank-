@@ -1,0 +1,147 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    // Suffix representation structure to aid in sorting
+    static class Suffix implements Comparable<Suffix> {
+        int index;
+        int[] rank = new int[2];
+
+        @Override
+        public int compareTo(Suffix other) {
+            if (this.rank[0] == other.rank[0]) {
+                return Integer.compare(this.rank[1], other.rank[1]);
+            }
+            return Integer.compare(this.rank[0], other.rank[0]);
+        }
+    }
+
+    /*
+     * Complete the 'ashtonString' function below.
+     *
+     * The function is expected to return a CHARACTER.
+     * The function accepts following parameters:
+     *  1. STRING s
+     *  2. INTEGER k
+     */
+    public static char ashtonString(String s, int k) {
+        int n = s.length();
+        Suffix[] suffixes = new Suffix[n];
+        
+        for (int i = 0; i < n; i++) {
+            suffixes[i] = new Suffix();
+            suffixes[i].index = i;
+            suffixes[i].rank[0] = s.charAt(i) - 'a';
+            suffixes[i].rank[1] = (i + 1 < n) ? (s.charAt(i + 1) - 'a') : -1;
+        }
+
+        Arrays.sort(suffixes);
+        int[] ind = new int[n];
+
+        for (int length = 4; length < 2 * n; length <<= 1) {
+            int rank = 0;
+            int prevRank = suffixes[0].rank[0];
+            suffixes[0].rank[0] = rank;
+            ind[suffixes[0].index] = 0;
+
+            for (int i = 1; i < n; i++) {
+                if (suffixes[i].rank[0] == prevRank && suffixes[i].rank[1] == suffixes[i - 1].rank[1]) {
+                    prevRank = suffixes[i].rank[0];
+                    suffixes[i].rank[0] = rank;
+                } else {
+                    prevRank = suffixes[i].rank[0];
+                    suffixes[i].rank[0] = ++rank;
+                }
+                ind[suffixes[i].index] = i;
+            }
+
+            for (int i = 0; i < n; i++) {
+                int nextIndex = suffixes[i].index + length / 2;
+                suffixes[i].rank[1] = (nextIndex < n) ? suffixes[ind[nextIndex]].rank[0] : -1;
+            }
+            Arrays.sort(suffixes);
+        }
+
+        int[] suffixArray = new int[n];
+        for (int i = 0; i < n; i++) {
+            suffixArray[i] = suffixes[i].index;
+        }
+
+        // Construct the LCP array using Kasai's algorithm
+        int[] lcp = new int[n];
+        int[] invSuff = new int[n];
+        for (int i = 0; i < n; i++) {
+            invSuff[suffixArray[i]] = i;
+        }
+
+        int h = 0;
+        for (int i = 0; i < n; i++) {
+            if (invSuff[i] > 0) {
+                int j = suffixArray[invSuff[i] - 1];
+                while (i + h < n && j + h < n && s.charAt(i + h) == s.charAt(j + h)) {
+                    h++;
+                }
+                lcp[invSuff[i]] = h;
+                if (h > 0) {
+                    h--;
+                }
+            }
+        }
+
+        // Search for the k-th character using the calculated suffix metrics[cite: 14]
+        long currentK = k; 
+        for (int i = 0; i < n; i++) {
+            int suffixIdx = suffixArray[i];
+            int len = n - suffixIdx;
+            int prevLcp = lcp[i];
+
+            // Calculate the total number of characters added by unique substrings of this suffix[cite: 14]
+            long count = 0;
+            for (int L = prevLcp + 1; L <= len; L++) {
+                count += L;
+            }
+
+            if (currentK <= count) {
+                // Pinpoint the specific substring length that holds the character[cite: 14]
+                for (int L = prevLcp + 1; L <= len; L++) {
+                    if (currentK <= L) {
+                        return s.charAt(suffixIdx + (int) currentK - 1);
+                    }
+                    currentK -= L;
+                }
+            }
+            currentK -= count;
+        }
+
+        return ' ';
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int t = Integer.parseInt(bufferedReader.readLine().trim());
+
+        for (int tItr = 0; tItr < t; tItr++) {
+            String s = bufferedReader.readLine();
+
+            int k = Integer.parseInt(bufferedReader.readLine().trim());
+
+            char res = Result.ashtonString(s, k);
+
+            bufferedWriter.write(String.valueOf(res));
+            bufferedWriter.newLine();
+        }
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
