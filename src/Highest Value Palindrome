@@ -1,0 +1,101 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'highestValuePalindrome' function below.
+     *
+     * The function is expected to return a STRING.
+     * The function accepts following parameters:
+     *  1. STRING s
+     *  2. INTEGER n
+     *  3. INTEGER k
+     */
+
+    public static String highestValuePalindrome(String s, int n, int k) {
+        char[] chars = s.toCharArray();
+        // A boolean array to track which positions were forced to change in the first pass
+        boolean[] changed = new boolean[n];
+
+        // Step 1: Count minimum required changes to form a basic palindrome[cite: 9]
+        int minChanges = 0;
+        for (int i = 0; i < n / 2; i++) {
+            if (chars[i] != chars[n - 1 - i]) {
+                minChanges++;
+            }
+        }
+
+        // If changes needed exceed the allowed budget k, it's impossible[cite: 9]
+        if (minChanges > k) {
+            return "-1";
+        }
+
+        // Make it a valid palindrome matching pairs to the higher value[cite: 9]
+        for (int i = 0; i < n / 2; i++) {
+            if (chars[i] != chars[n - 1 - i]) {
+                if (chars[i] > chars[n - 1 - i]) {
+                    chars[n - 1 - i] = chars[i];
+                } else {
+                    chars[i] = chars[n - 1 - i];
+                }
+                changed[i] = true;
+                k--; // Dedust from total budget
+            }
+        }
+
+        // Step 2: Use remaining k budget to maximize the values to '9' from outside in[cite: 9]
+        for (int i = 0; i < n / 2; i++) {
+            if (chars[i] != '9') {
+                // If it was changed in pass 1, we already used 1 move. Upgrading to '9' takes 1 more.
+                if (changed[i] && k >= 1) {
+                    chars[i] = '9';
+                    chars[n - 1 - i] = '9';
+                    k--;
+                } 
+                // If it wasn't changed, making both sides '9' requires 2 brand new moves.
+                else if (!changed[i] && k >= 2) {
+                    chars[i] = '9';
+                    chars[n - 1 - i] = '9';
+                    k -= 2;
+                }
+            }
+        }
+
+        // If the string length is odd and we still have moves left, upgrade middle character to '9'
+        if (n % 2 != 0 && k >= 1) {
+            chars[n / 2] = '9';
+        }
+
+        return new String(chars);
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        String[] firstMultipleInput = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        int n = Integer.parseInt(firstMultipleInput[0]);
+
+        int k = Integer.parseInt(firstMultipleInput[1]);
+
+        String s = bufferedReader.readLine();
+
+        String result = Result.highestValuePalindrome(s, n, k);
+
+        bufferedWriter.write(result);
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
