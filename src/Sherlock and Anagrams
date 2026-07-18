@@ -1,0 +1,74 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'sherlockAndAnagrams' function below.
+     *
+     * The function is expected to return an INTEGER.
+     * The function accepts STRING s as parameter.
+     */
+
+    public static int sherlockAndAnagrams(String s) {
+        Map<String, Integer> substringMap = new HashMap<String, Integer>();
+        int length = s.length();
+
+        // 1. Generate all possible substrings, sort them, and count frequencies[cite: 11]
+        for (int i = 0; i < length; i++) {
+            for (int j = i + 1; j <= length; j++) {
+                String sub = s.substring(i, j);
+                
+                // Convert to character array and sort to handle anagrammatic checks[cite: 11]
+                char[] chars = sub.toCharArray();
+                Arrays.sort(chars);
+                String sortedSub = new String(chars);
+
+                // Update frequency map using Java 7 compatible syntax
+                if (substringMap.containsKey(sortedSub)) {
+                    substringMap.put(sortedSub, substringMap.get(sortedSub) + 1);
+                } else {
+                    substringMap.put(sortedSub, 1);
+                }
+            }
+        }
+
+        int totalPairs = 0;
+
+        // 2. Compute total unordered pairs using combinations[cite: 11]
+        for (int count : substringMap.values()) {
+            if (count > 1) {
+                totalPairs += (count * (count - 1)) / 2;
+            }
+        }
+
+        return totalPairs;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int q = Integer.parseInt(bufferedReader.readLine().trim());
+
+        for (int qItr = 0; qItr < q; qItr++) {
+            String s = bufferedReader.readLine();
+
+            int result = Result.sherlockAndAnagrams(s);
+
+            bufferedWriter.write(String.valueOf(result));
+            bufferedWriter.newLine();
+        }
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
