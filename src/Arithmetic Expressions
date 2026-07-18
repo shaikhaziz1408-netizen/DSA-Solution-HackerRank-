@@ -1,0 +1,109 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'arithmeticExpressions' function below.
+     *
+     * The function is expected to return a STRING.
+     * The function accepts INTEGER_ARRAY arr as parameter.
+     */
+
+    public static String arithmeticExpressions(List<Integer> arr) {
+        int n = arr.size();
+        // visited[index][remainder] keeps track of already evaluated failing states
+        boolean[][] visited = new boolean[n][101];
+        char[] operators = new char[n - 1];
+
+        // Start DFS from index 1, with the initial remainder being the first element modulo 101
+        int initialRemainder = Math.abs(arr.get(0)) % 101;
+        dfs(arr, 1, initialRemainder, operators, visited);
+
+        // Build the final string expression output
+        StringBuilder sb = new StringBuilder();
+        sb.append(arr.get(0));
+        for (int i = 0; i < operators.length; i++) {
+            sb.append(operators[i]);
+            sb.append(arr.get(i + 1));
+        }
+
+        return sb.toString();
+    }
+
+    private static boolean dfs(List<Integer> arr, int idx, int currentRemainder, char[] operators, boolean[][] visited) {
+        // Base Case: If we processed all integers, check if the final remainder is divisible by 101
+        if (idx == arr.size()) {
+            return currentRemainder == 0;
+        }
+
+        // Pruning: If this index with the current remainder has already been tried and failed, skip it
+        if (visited[idx][currentRemainder]) {
+            return false;
+        }
+
+        int nextVal = arr.get(idx);
+
+        // 1. Try Multiplication (*)
+        int mulRemainder = (currentRemainder * nextVal) % 101;
+        operators[idx - 1] = '*';
+        if (dfs(arr, idx + 1, mulRemainder, operators, visited)) {
+            return true;
+        }
+
+        // 2. Try Addition (+)
+        int addRemainder = (currentRemainder + nextVal) % 101;
+        operators[idx - 1] = '+';
+        if (dfs(arr, idx + 1, addRemainder, operators, visited)) {
+            return true;
+        }
+
+        // 3. Try Subtraction (-)
+        int subRemainder = (currentRemainder - nextVal) % 101;
+        if (subRemainder < 0) {
+            subRemainder = (subRemainder % 101) + 101;
+        }
+        subRemainder %= 101;
+        
+        operators[idx - 1] = '-';
+        if (dfs(arr, idx + 1, subRemainder, operators, visited)) {
+            return true;
+        }
+
+        // Mark this state as visited and failed to avoid redundant computations later
+        visited[idx][currentRemainder] = true;
+        return false;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int n = Integer.parseInt(bufferedReader.readLine().trim());
+
+        String[] arrTemp = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        List<Integer> arr = new ArrayList<Integer>();
+
+        for (int i = 0; i < n; i++) {
+            int arrItem = Integer.parseInt(arrTemp[i]);
+            arr.add(arrItem);
+        }
+
+        String result = Result.arithmeticExpressions(arr);
+
+        bufferedWriter.write(result);
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
