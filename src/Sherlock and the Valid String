@@ -1,0 +1,90 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'isValid' function below.
+     *
+     * The function is expected to return a STRING.
+     * The function accepts STRING s as parameter.
+     */
+
+    public static String isValid(String s) {
+        // Count frequencies of each character in the string
+        Map<Character, Integer> charCounts = new HashMap<Character, Integer>();
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (charCounts.containsKey(ch)) {
+                charCounts.put(ch, charCounts.get(ch) + 1);
+            } else {
+                charCounts.put(ch, 1);
+            }
+        }
+
+        // Track how often each frequency appears
+        Map<Integer, Integer> freqCounts = new HashMap<Integer, Integer>();
+        for (int count : charCounts.values()) {
+            if (freqCounts.containsKey(count)) {
+                freqCounts.put(count, freqCounts.get(count) + 1);
+            } else {
+                freqCounts.put(count, 1);
+            }
+        }
+
+        // Case 1: All characters already have the exact same frequency[cite: 8]
+        if (freqCounts.size() == 1) {
+            return "YES";
+        }
+
+        // Case 2: If there are more than two distinct frequencies, it's impossible to fix with 1 removal[cite: 8]
+        if (freqCounts.size() > 2) {
+            return "NO";
+        }
+
+        // Case 3: Exactly two distinct frequencies exist
+        Iterator<Integer> it = freqCounts.keySet().iterator();
+        int f1 = it.next();
+        int f2 = it.next();
+
+        int countF1 = freqCounts.get(f1);
+        int countF2 = freqCounts.get(f2);
+
+        // Subcase A: One frequency is 1 and it occurs only once (we can completely delete that character)[cite: 8]
+        if ((f1 == 1 && countF1 == 1) || (f2 == 1 && countF2 == 1)) {
+            return "YES";
+        }
+
+        // Subcase B: The higher frequency is exactly 1 greater than the lower frequency, 
+        // and that higher frequency occurs only once (we can reduce its count by 1)[cite: 8]
+        if ((f1 - f2 == 1 && countF1 == 1) || (f2 - f1 == 1 && countF2 == 1)) {
+            return "YES";
+        }
+
+        // Otherwise, it's invalid[cite: 8]
+        return "NO";
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        String s = bufferedReader.readLine();
+
+        String result = Result.isValid(s);
+
+        bufferedWriter.write(result);
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
