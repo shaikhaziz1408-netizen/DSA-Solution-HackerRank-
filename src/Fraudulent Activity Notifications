@@ -1,0 +1,114 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'activityNotifications' function below.
+     *
+     * The function is expected to return an INTEGER.
+     * The function accepts following parameters:
+     *  1. INTEGER_ARRAY expenditure
+     *  2. INTEGER d
+     */
+
+    public static int activityNotifications(List<Integer> expenditure, int d) {
+        int notifications = 0; // Tracks the count of total alerts triggered[cite: 26]
+        int n = expenditure.size();
+        
+        // Since expenditure[i] <= 200, a fixed tracking frequency array handles O(1) median calculations[cite: 26]
+        int[] count = new int[201];
+        
+        // Initialize the tracking frequency array with the first d trailing days[cite: 26]
+        for (int i = 0; i < d; i++) {
+            count[expenditure.get(i)]++;
+        }
+        
+        // Begin evaluating potential fraud from day d up to day n-1[cite: 26]
+        for (int i = d; i < n; i++) {
+            int currentExpense = expenditure.get(i);
+            
+            // If the expense is >= 2x the median, trigger a notification alert[cite: 26]
+            if (currentExpense >= getDoubleMedian(count, d)) {
+                notifications++;
+            }
+            
+            // Slide the window forward: remove the oldest item and add the new item[cite: 26]
+            count[expenditure.get(i - d)]--;
+            count[currentExpense]++;
+        }
+        
+        return notifications;
+    }
+
+    // Helper method to find 2 * median using the frequency tracking array
+    private static int getDoubleMedian(int[] count, int d) {
+        int sum = 0;
+        
+        // Case 1: The number of trailing days d is odd[cite: 26]
+        if (d % 2 != 0) {
+            int target = d / 2 + 1;
+            for (int i = 0; i < count.length; i++) {
+                sum += count[i];
+                if (sum >= target) {
+                    return i * 2; // Double median value calculation[cite: 26]
+                }
+            }
+        } 
+        // Case 2: The number of trailing days d is even[cite: 26]
+        else {
+            int target1 = d / 2;
+            int target2 = d / 2 + 1;
+            int m1 = -1, m2 = -1;
+            
+            for (int i = 0; i < count.length; i++) {
+                sum += count[i];
+                if (m1 == -1 && sum >= target1) {
+                    m1 = i;
+                }
+                if (sum >= target2) {
+                    m2 = i;
+                    return m1 + m2; // Return the sum of the middle values (equivalent to 2 * average)[cite: 26]
+                }
+            }
+        }
+        
+        return 0;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        String[] firstMultipleInput = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        int n = Integer.parseInt(firstMultipleInput[0]);
+
+        int d = Integer.parseInt(firstMultipleInput[1]);
+
+        String[] expenditureTemp = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        List<Integer> expenditure = new ArrayList<Integer>();
+
+        for (int i = 0; i < n; i++) {
+            int expenditureItem = Integer.parseInt(expenditureTemp[i]);
+            expenditure.add(expenditureItem);
+        }
+
+        int result = Result.activityNotifications(expenditure, d);
+
+        bufferedWriter.write(String.valueOf(result));
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
