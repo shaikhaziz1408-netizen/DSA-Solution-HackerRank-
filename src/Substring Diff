@@ -1,0 +1,94 @@
+import java.io.*;
+import java.math.*;
+import java.security.*;
+import java.text.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.regex.*;
+
+class Result {
+
+    /*
+     * Complete the 'substringDiff' function below.
+     *
+     * The function is expected to return an INTEGER.
+     * The function accepts following parameters:
+     *  1. INTEGER k
+     *  2. STRING s1
+     *  3. STRING s2
+     */
+
+    public static int substringDiff(int k, String s1, String s2) {
+        int n = s1.length();
+        int maxLength = 0;
+
+        // Iterate through all possible starting offsets for s1
+        for (int offset1 = 0; offset1 < n; offset1++) {
+            maxLength = Math.max(maxLength, maxWindowLength(k, s1, s2, offset1, 0));
+        }
+
+        // Iterate through all possible starting offsets for s2 (skip 0 as it's checked above)
+        for (int offset2 = 1; offset2 < n; offset2++) {
+            maxLength = Math.max(maxLength, maxWindowLength(k, s1, s2, 0, offset2));
+        }
+
+        return maxLength;
+    }
+
+    // Helper method that implements the sliding window along a given diagonal path
+    private static int maxWindowLength(int k, String s1, String s2, int start1, int start2) {
+        int n = s1.length();
+        int maxLen = 0;
+        int left = 0;
+        int mismatches = 0;
+
+        // right tracks the current length extension along the diagonal path
+        for (int right = 0; start1 + right < n && start2 + right < n; right++) {
+            // Check if the current alignment results in a mismatch
+            if (s1.charAt(start1 + right) != s2.charAt(start2 + right)) {
+                mismatches++;
+            }
+
+            // Shrink the window from the left if mismatches exceed the allowed budget k
+            while (mismatches > k) {
+                if (s1.charAt(start1 + left) != s2.charAt(start2 + left)) {
+                    mismatches--;
+                }
+                left++;
+            }
+
+            // Record the maximum valid window length achieved
+            maxLen = Math.max(maxLen, right - left + 1);
+        }
+
+        return maxLen;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int t = Integer.parseInt(bufferedReader.readLine().trim());
+
+        for (int tItr = 0; tItr < t; tItr++) {
+            String[] firstMultipleInput = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+            int k = Integer.parseInt(firstMultipleInput[0]);
+
+            String s1 = firstMultipleInput[1];
+
+            String s2 = firstMultipleInput[2];
+
+            int result = Result.substringDiff(k, s1, s2);
+
+            bufferedWriter.write(String.valueOf(result));
+            bufferedWriter.newLine();
+        }
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
